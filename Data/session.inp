@@ -1,0 +1,17 @@
+# Log started 2015-01-24 17:23
+# Record of session commands.  Please note that this will
+# likely require editing if it is to be run as a script.
+open C:\Users\j_ast_000\Documents\Topics\bizCycleData.csv
+adf 4 EMPLRATE --ct --test-down --gls
+adf 4 EMPLRATE --c --difference --test-down --gls
+adf 4 RULC --ct --test-down --gls
+adf 4 RULC --c --difference --test-down --gls
+gnuplot EMPLRATE --time-series --with-lines
+series hpt_EMPLRATE = EMPLRATE - hpfilt(EMPLRATE, 1600)
+setinfo hpt_EMPLRATE -d "Filtered EMPLRATE: Hodrick-Prescott trend (lambda = 1600)"
+series hp_EMPLRATE = EMPLRATE - hpt_EMPLRATE
+setinfo hp_EMPLRATE -d "Filtered EMPLRATE: Hodrick-Prescott cycle (lambda = 1600)"
+series hpt_RULC = RULC - hpfilt(RULC, 1600)
+setinfo hpt_RULC -d "Filtered RULC: Hodrick-Prescott trend (lambda = 1600)"
+series hp_RULC = RULC - hpt_RULC
+setinfo hp_RULC -d "Filtered RULC: Hodrick-Prescott cycle (lambda = 1600)"
