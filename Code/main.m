@@ -105,5 +105,66 @@ trGuess = repmat(1/nStates, nStates, nStates);
 emitGuess = repmat(1/nStates, 1, nStates);
 
 %% Maybe try this using stats toolbox instead?
-seq = validData;
-[transProbs,emitProbs] = hmmtrain(seq,trGuess,emitGuess);
+% Need to bin emission values and compute by hand the ML estimates for the 
+% transition and emission matrix. Probably want roughly the same amount of
+% data in each bin
+
+%% dicretize the data 
+% CAIM isn't really working, sadly 
+%C = 1; % one class label
+%[discData,discSet] = CAIM_Discretization(origData,C);
+
+discData = zeros(size(validData));
+n = 8;
+for c = 1:size(validData, 2)
+    col = validData(:,c);
+    maxVal = max(col);
+    minVal = min(col);
+    edges = linspace(minVal, maxVal, n);
+    discCol = discretize(col, edges);
+    discData(:,c) = discCol;
+end
+
+%% make ML estimates of transition and emission matrices
+
+% Make the transition matrix
+obsCount = size(validLabels, 1);
+transitionMatrix = zeros(2,2);
+for n = 1:obsCount-1
+    currLabel = validLabels(n);
+    nextLabel = validLabels(n+1);
+    if currLabel == 0 && nextLabel == 0 
+        transitionMatrix(1,1) = transitionMatrix(1,1) + 1;
+    elseif currLabel == 0 && nextLabel == 1
+        transitionMatrix(1,2) = transitionMatrix(1,2) + 1;
+    elseif currLabel == 1 && nextLabel == 1
+        transitionMatrix(2,2) = transitionMatrix(2,2) + 1;
+    elseif currLabel == 1 && nextLabel == 0
+        transitionMatrix(2,1) = transitionMatrix(2,1) + 1;
+    end
+end
+transitionMatrix = transitionMatrix/size(validData,1);
+
+% Make the emissions matrix 
+% for now, just use feature 1
+featNum = 1;
+emissionMatrix = zeros(2,n-1);
+for r = 1:size(discData, featNum)
+    emission = discData(r, featNum);
+    class = validLabels(r);
+    emissionMatrix(class+1,emission) = emissionMatrix(class+1,emission)+1;
+end
+% each row should sum to 1
+emissionMatrix(1,:) = emissionMatrix(1,:)/sum(emissionMatrix(1,:));
+emissionMatrix(2,:) = emissionMatrix(2,:)/sum(emissionMatrix(2,:));
+
+%% Now that we have the hmm model, see how well it performs
+% for now, this is totally incest
+states = hmmviterbi(discData(:,featNum), transitionMatrix, emissionMatrix);
+states = states-1;
+states = ~states;
+
+pctError = sum(states' == validLabels) / size(states,2)
+
+
+
