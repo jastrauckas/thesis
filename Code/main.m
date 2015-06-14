@@ -163,8 +163,29 @@ emissionMatrix(2,:) = emissionMatrix(2,:)/sum(emissionMatrix(2,:));
 states = hmmviterbi(discData(:,featNum), transitionMatrix, emissionMatrix);
 states = states-1;
 states = ~states;
+pctError_1D_HMM = sum(states' == validLabels) / size(states,2); % reverse labels
+% this *kind of* worked with one variable, so let's consider a better HMM
+% model
 
-pctError = sum(states' == validLabels) / size(states,2)
+%% PMTK HMMs - can use multivariate Gaussians
+d = size(validData, 2);
+nstates = 2;
+Z = {validLabels' + 1};
+Y = {validData'};
+X = Y{1}; % I'm the worst 
+model2 = hmmFitFullyObs(Z, Y, 'gauss');
 
+% use Viterbi to predict state sequence
+path = hmmMap(model2, X) - 1;
+pctError_MVN_HMM = sum(path ~= validLabels') / size(validLabels,1)
 
+% now, without incest!
+Z = {validLabels(1:140)' + 1};
+Y = {validData(1:140,:)'};
+X = validData(141:end,:)';
+model3 = hmmFitFullyObs(Z, Y, 'gauss');
 
+% use Viterbi to predict state sequence
+path = hmmMap(model3, X) - 1;
+pctError_MVN_HMM = sum(path ~= validLabels(141:end)') / ...
+    size(validLabels(141:end),1)
