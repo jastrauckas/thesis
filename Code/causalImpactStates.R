@@ -31,7 +31,8 @@ spending <- as.matrix(spending)
 matplot(spending, type="l")
 
 # look for anomalous spending spikes during a recession
-yearCount <- 35
+spendingYears <- seq(1978, 2012)
+yearCount <- length(spendingYears)
 stateCount <- length(stateNames)
 allStateExpenditures <- matrix(, nrow = yearCount, ncol = stateCount)
 for (i in 0:stateCount)
@@ -39,12 +40,13 @@ for (i in 0:stateCount)
   stateName <- stateNames[i]
   print(stateName)
   stateSpending <- subset(expenditureData, State==stateName)
-  df <- stateSpending["Total Expenditure"]
+  #df <- stateSpending["Total Expenditure"]
+  df <- stateSpending["Expenditure Percent Change"]
   spendingCol <- as.matrix(df)[,1]
   print(length(spendingCol))
   allStateExpenditures[,i] <- spendingCol
 }
-matplot(allStateExpenditures, type="l")
+matplot(spendingYears, allStateExpenditures, type="l")
 
 
 
