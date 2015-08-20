@@ -10,7 +10,7 @@ stateGDPm = as.matrix(stateGDP)
 stateGDPm <- stateGDPm[,-1]
 
 # GDP BY STATE
-stateNames <- stateGDP[,1]
+stateNames <- as.vector(stateGDP[,1])
 rownames(stateGDP) <- stateNames
 stateGDP <- stateGDP[,-1]
 years <- seq(1988, 2014)
@@ -35,18 +35,63 @@ spendingYears <- seq(1978, 2012)
 yearCount <- length(spendingYears)
 stateCount <- length(stateNames)
 allStateExpenditures <- matrix(, nrow = yearCount, ncol = stateCount)
-for (i in 0:stateCount)
+for (i in 1:stateCount)
 {
   stateName <- stateNames[i]
-  print(stateName)
   stateSpending <- subset(expenditureData, State==stateName)
   #df <- stateSpending["Total Expenditure"]
   df <- stateSpending["Expenditure Percent Change"]
   spendingCol <- as.matrix(df)[,1]
-  print(length(spendingCol))
   allStateExpenditures[,i] <- spendingCol
 }
 matplot(spendingYears, allStateExpenditures, type="l")
+#hist(allStateExpenditures) # looks pretty normal
+flatSpending <- as.vector(allStateExpenditures)
+mu <- mean(flatSpending) # 2.04
+sigma <- sqrt(var(flatSpending)) # 4.47
+
+# define "high spending increase" as at least one standard deviation above average
+bigIncrease <- mu + sigma
+
+# look for states that had a big spending increase DURING A RECESSION
+# taken from NBER data
+# include any year that included at least 6 months of contraction
+contractionYears <- c(1980, 1981, 1982, 1990, 2001, 2008, 2009)
+bigSpenders <- list()
+for (i in 1:stateCount)
+{
+  stateName <- stateNames[i]
+  #print(stateName)
+  stateSpending <- allStateExpenditures[,i]
+  for (y in 1:length(contractionYears))
+  {
+    year = contractionYears[y]
+    yearIndex = year - spendingYears[1]
+    #print(stateSpending[yearIndex])
+    if (stateSpending[yearIndex] > bigIncrease)
+    {
+      if (!(stateName %in% names(bigSpenders)))
+      {
+        bigSpenders[stateName] = year
+      }
+    }
+  }
+}
+#print(bigSpenders)
+
+# iterate through once more to find states that weren't added to bigSpenders
+# these states will serve as controls
+controlStates <- list()
+for (i in 1:stateCount)
+{
+  stateName <- stateNames[i]
+  if (!(stateName %in% names(bigSpenders)))
+  {
+    controlStates[stateName] <- TRUE
+  }
+}
+
+
 
 
 
