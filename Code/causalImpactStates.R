@@ -44,6 +44,7 @@ for (i in 1:stateCount)
   spendingCol <- as.matrix(df)[,1]
   allStateExpenditures[,i] <- spendingCol
 }
+colnames(allStateExpenditures) <- stateNames
 matplot(spendingYears, allStateExpenditures, type="l")
 #hist(allStateExpenditures) # looks pretty normal
 flatSpending <- as.vector(allStateExpenditures)
@@ -91,6 +92,31 @@ for (i in 1:stateCount)
   }
 }
 
+# create control matrix representing spending series for all control states
+controlStateCount = length(controlStates)
+controlStateExpenditures <- matrix(, nrow = yearCount, ncol = controlStateCount)
+i <- 0
+for (state in names(controlStates))
+{
+  i <- i+1
+  spendingCol <- allStateExpenditures[,state]
+  controlStateExpenditures[,i] <- spendingCol
+}
+colnames(controlStateExpenditures) <- names(controlStates)
+
+# one at a time for the states with "stimulus spending", 
+# x is spending time series
+# intervention is the year marked in bigSpenders
+# y is the gdp time series, and the gdp time series of all states
+# in the control group. 
+for (state in names(bigSpenders))
+{
+  print(state)
+  interventionYear <- bigSpenders[[state]]
+  print(interventionYear)
+  stateSpending <- allStateExpenditures[,state]
+  
+}
 
 
 
