@@ -1,21 +1,23 @@
 library("ggplot2")
 library("reshape2")
+library("CausalImpact")
 
 expenditure_csv <- "C:/cygwin/home/j_ast_000/Thesis/Data/expenditure_real2012_percapita.csv"
 stateGDP_csv <- "C:/cygwin/home/j_ast_000/Thesis/Data/gdpByState_ALL_realChainedPct.csv"
 
 expenditureData = read.csv(expenditure_csv, sep=',')
-stateGDP = read.csv(stateGDP_csv, sep=',')
-stateGDPm = as.matrix(stateGDP)
+stateGDPData = read.csv(stateGDP_csv, sep=',')
+stateGDPm = as.matrix(stateGDPData)
 stateGDPm <- stateGDPm[,-1]
 
 # GDP BY STATE
-stateNames <- as.vector(stateGDP[,1])
-rownames(stateGDP) <- stateNames
-stateGDP <- stateGDP[,-1]
-years <- seq(1988, 2014)
-colnames(stateGDP) <- years
-#plot(years, stateGDP["Alabama",], type="l")
+stateNames <- as.vector(stateGDPData[,1])
+rownames(stateGDPData) <- stateNames
+stateGDPData <- stateGDPData[,-1]
+gdpYears <- seq(1988, 2014)
+colnames(stateGDPData) <- gdpYears
+rownames(stateGDPData) <- stateNames
+#plot(gdpYears, stateGDPData["Alabama",], type="l")
 x1 <- stateGDPm[1,] # Alabama
 x2 <- stateGDPm[2,] # Alaska
 x <- cbind(x1, x2)
@@ -32,6 +34,7 @@ matplot(spending, type="l")
 
 # look for anomalous spending spikes during a recession
 spendingYears <- seq(1978, 2012)
+commonYears <- seq(1988, 2012)
 yearCount <- length(spendingYears)
 stateCount <- length(stateNames)
 allStateExpenditures <- matrix(, nrow = yearCount, ncol = stateCount)
@@ -57,7 +60,10 @@ bigIncrease <- mu + sigma
 # look for states that had a big spending increase DURING A RECESSION
 # taken from NBER data
 # include any year that included at least 6 months of contraction
-contractionYears <- c(1980, 1981, 1982, 1990, 2001, 2008, 2009)
+#contractionYears <- c(1980, 1981, 1982, 1990, 2001, 2008, 2009)
+# we only have GDP data since 1988, though
+contractionYears <- c(1990, 2001, 2008, 2009)
+
 bigSpenders <- list()
 for (i in 1:stateCount)
 {
@@ -95,12 +101,15 @@ for (i in 1:stateCount)
 # create control matrix representing spending series for all control states
 controlStateCount = length(controlStates)
 controlStateExpenditures <- matrix(, nrow = yearCount, ncol = controlStateCount)
-i <- 0
+controlStateGDPs <- matrix(, nrow = length(gdpYears), ncol = controlStateCount)
+i = 0
 for (state in names(controlStates))
 {
   i <- i+1
   spendingCol <- allStateExpenditures[,state]
   controlStateExpenditures[,i] <- spendingCol
+  gdpCol <- t(stateGDPData[state,])
+  controlStateGDPs[,i] <- gdpCol
 }
 colnames(controlStateExpenditures) <- names(controlStates)
 
@@ -112,10 +121,33 @@ colnames(controlStateExpenditures) <- names(controlStates)
 for (state in names(bigSpenders))
 {
   print(state)
+  rowCount <- length(commonYears)
+  colCount <- 1+length(controlStates)
+  dataMatrix <- matrix(, nrow = rowCount, ncol = colCount)
   interventionYear <- bigSpenders[[state]]
   print(interventionYear)
   stateSpending <- allStateExpenditures[,state]
   
+  # put together the response variable (y)
+  # and the control series (x1, ... xn)
+  # from the GDP DATA, using the intervention years
+  # determined from the expenditure data
+  # need a matrix where y is the first column vector
+  # x1, x2, ... xn are subsequent column vectors
+  extraYears <- tail(gdpYears, 1) - tail(spendingYears, 1)
+  stateGDP <- stateGDPData[state, ]
+  lastIndex <- length(stateGDP) - extraYears
+  stateGDP <- stateGDP[1:lastIndex]
+  
+  # RESPONSE VARIABLE (y)
+  dataMatrix[,1] <- as.matrix(stateGDP)
+  
+  # CONTROL VARIABLES (x)
+  dataMatrix[,2:colCount] <- controlStateGDPs[1:lastIndex,]
+  
+  # labels
+  cn <- c("y", "x1","x2","x3","x4","x5","x6","x7","x8","x9","x10","x11","x12","x13","x14","x15","x16","x17","x18","x19","x20","x21","x22","x23","x24","x25","x26","x27","x28", "x29", "x30")
+  colnames(dataMatrix) <- cn
 }
 
 
