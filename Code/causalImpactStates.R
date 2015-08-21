@@ -62,7 +62,9 @@ bigIncrease <- mu + sigma
 # include any year that included at least 6 months of contraction
 #contractionYears <- c(1980, 1981, 1982, 1990, 2001, 2008, 2009)
 # we only have GDP data since 1988, though
-contractionYears <- c(1990, 2001, 2008, 2009)
+# and we need to have an intervention point that contains at least some training
+# and test data
+contractionYears <- c(2001, 2008, 2009)
 
 bigSpenders <- list()
 for (i in 1:stateCount)
@@ -146,8 +148,21 @@ for (state in names(bigSpenders))
   dataMatrix[,2:colCount] <- controlStateGDPs[1:lastIndex,]
   
   # labels
-  cn <- c("y", "x1","x2","x3","x4","x5","x6","x7","x8","x9","x10","x11","x12","x13","x14","x15","x16","x17","x18","x19","x20","x21","x22","x23","x24","x25","x26","x27","x28", "x29", "x30")
+  cn <- c("y", "x1","x2","x3","x4","x5","x6","x7","x8","x9","x10","x11","x12","x13","x14","x15","x16","x17","x18","x19","x20","x21","x22","x23","x24","x25","x26","x27","x28", "x29", "x30", "x31")
   colnames(dataMatrix) <- cn
+  
+  matplot(dataMatrix, type='l')
+  
+  # TRAINING/TESTING POINTS
+  firstYear <- head(commonYears, 1)
+  finalYear <- tail(commonYears, 1)
+  intervention <- interventionYear - firstYear
+  pre.period <- c(1, intervention-1)
+  post.period <- c(intervention, finalYear-firstYear)
+  
+  # INFERENCE
+  impact <- CausalImpact(dataMatrix, pre.period, post.period)
+  plot(impact)
 }
 
 
