@@ -25,8 +25,8 @@ dates = linspace(startDate, endDate, observationCount);
 
 % which features to use?
 %selections = 1:19;
-%selections = [2,7,18,19];  % NASDAQ
-selections = [2,7,18,20];   % DJIA
+selections = [2,7,18,19];  % NASDAQ
+%selections = [2,7,18,20];   % DJIA
 selectedNames = featureNames(selections);
 data = [];
 for i=selections
