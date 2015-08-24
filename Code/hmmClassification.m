@@ -1,6 +1,11 @@
 clc, clear all, close all 
 RELOAD = true;
 
+%% INITIALIZE
+addpath('C:\Users\j_ast_000\Documents\MATLAB\pmtk3-master');
+initPmtk3
+cd 'C:\cygwin\home\j_ast_000\Thesis\Code'
+
 %% LOAD DATA and select features
 % define what's happening in this csv
 nLabels = 1; % how many columns at the end are class labels?
@@ -21,7 +26,7 @@ dates = linspace(startDate, endDate, observationCount);
 % which features to use?
 %selections = 1:19;
 %selections = [2,7,18,19];  % NASDAQ
-selections = [2,7,18,19,20];   % DJIA
+selections = [2,7,18,20];   % DJIA
 selectedNames = featureNames(selections);
 data = [];
 for i=selections
