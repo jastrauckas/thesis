@@ -12,7 +12,7 @@ nLabels = 1; % how many columns at the end are class labels?
 startDate = 1947.0;
 
 if RELOAD
-    rawData = csvread('../Data/masterData.csv', 3, 1);
+    rawData = csvread('../Data/masterData.csv', 2, 1);
     featureCount = size(rawData, 2)-1;
     observationCount = size(rawData, 1);
     featureNames = textread('../Data/masterData.csv', '%s', 'delimiter', ',');

@@ -12,7 +12,7 @@ nLabels = 1; % how many columns at the end are class labels?
 startDate = 1947.0;
 
 if RELOAD
-    rawData = csvread('../Data/masterData.csv', 3, 1);
+    rawData = csvread('../Data/masterData.csv', 2, 1);
     featureCount = size(rawData, 2)-1;
     observationCount = size(rawData, 1);
     featureNames = textread('../Data/masterData.csv', '%s', 'delimiter', ',');
@@ -111,6 +111,8 @@ gnp = rawData(:,5);
 [y1, y2, i1, i2] = getValidDateRange(gnp, dates);
 gnpDates = dates(i1:i2);
 gnp = gnp(i1:i2);
+gnpLabels = classLabels(i1:i2) - 1;
+[conStarts, conEnds] = getContractionDates(gnpLabels);
 
 % Perform subsequent single-level wavelet decompositions
 % Yogo suggest 17/11 filter -> doiflet with N=2
@@ -133,12 +135,13 @@ plot(gnpDates, gnp, 'linewidth', 1)
 hold on
 plot(gnpDates, trend, 'g')
 plot(gnpDates, cycle_4_8, 'r')
-plot(gnpDates, cycle_8_16, 'm')
+plot(gnpDates, cycle_8_16, 'k')
 plot(gnpDates, cycle_16_32, 'c')
 
 legend('GNP', 'trend', '4-8 quarter cycle', '8-16 quarter cycle', '16-32 quarter cycle')
 xlabel('Year')
 ylabel('Billions of Chained 2009 Dollars')
+axis([1946 2015 -1000 18000])
 hold off
 
 
