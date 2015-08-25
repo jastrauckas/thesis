@@ -131,17 +131,33 @@ cycle_16_32 = upcoef('d', d3, wname, 4, originalLength);
 trend = upcoef('a', a3, wname, 4, originalLength);
 
 figure
-plot(gnpDates, gnp, 'linewidth', 1)
+plot(gnpDates, gnp, 'k', 'linewidth', 1)
 hold on
-plot(gnpDates, trend, 'g')
-plot(gnpDates, cycle_4_8, 'r')
-plot(gnpDates, cycle_8_16, 'k')
-plot(gnpDates, cycle_16_32, 'c')
+plot(gnpDates, trend, 'b')
+plot(gnpDates, cycle_4_8, 'g')
+plot(gnpDates, cycle_8_16, 'm')
+plot(gnpDates, cycle_16_32, 'r')
 
 legend('GNP', 'trend', '4-8 quarter cycle', '8-16 quarter cycle', '16-32 quarter cycle')
 xlabel('Year')
 ylabel('Billions of Chained 2009 Dollars')
-axis([1946 2015 -1000 18000])
+
+ymin = -1000;
+ymax = 18000;
+axis([1946 2015 ymin ymax])
+ymid = ((ymax-ymin)/2) + ymin;
+yheight = (ymax-ymin);
+for ind = 1:size(conStarts, 2)
+    first = gnpDates(conStarts(ind));
+    last = gnpDates(conEnds(ind));
+    duration = last-first;
+    center = (duration/2) + first;
+    %rectangle('Position', [center, ymin, duration, yheight])
+    p = patch([first last last first], [ymin ymin ymax ymax], 'c');
+    set(p,'FaceAlpha',0.2);
+    set(p,'EdgeAlpha',0.2);
+    set(p, 'EdgeColor', 'c');
+end
 hold off
 
 
