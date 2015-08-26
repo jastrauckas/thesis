@@ -137,6 +137,8 @@ for col=1:featureCount
     wd = getCycleComponents(validData(:,col), wname, 0);
     waveletData = [waveletData wd];
 end
+% ONLY FOR CONTROL COMPARISON:
+%waveletData = validData;
 
 validLabels = classLabels(i1:i2);
 validLabels(validLabels==1) = 0;
