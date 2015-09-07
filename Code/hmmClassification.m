@@ -25,8 +25,9 @@ dates = linspace(startDate, endDate, observationCount);
 
 % which features to use?
 %selections = 1:19;
-selections = [2,7,18,19];  % NASDAQ
+%selections = [2,7,18,19];  % NASDAQ = BEST
 %selections = [2,7,18,20];   % DJIA
+selections = [5,18];
 selectedNames = featureNames(selections);
 data = [];
 for i=selections
@@ -186,12 +187,18 @@ path = hmmMap(model2, X) - 1;
 pctError_MVN_HMM = sum(path ~= validLabels') / size(validLabels,1)
 
 % now, without incest!
-Z = {validLabels(1:140)' + 1};
-Y = {validData(1:140,:)'};
-X = validData(141:end,:)';
+targetIndex = 5 * round(size(validLabels, 1) / 8);
+while validLabels(targetIndex) ~= validLabels(1)
+    targetIndex = targetIndex + 1;
+end
+split = targetIndex;
+
+Z = {validLabels(1:targetIndex)' + 1};
+Y = {validData(1:targetIndex,:)'};
+X = validData(targetIndex+1:end,:)';
 model3 = hmmFitFullyObs(Z, Y, 'gauss');
 
 % use Viterbi to predict state sequence
 path = hmmMap(model3, X) - 1;
-pctError_MVN_HMM = sum(path ~= validLabels(141:end)') / ...
-    size(validLabels(141:end),1)
+pctError_MVN_HMM = sum(path ~= validLabels(targetIndex+1:end)') / ...
+    size(X,2)
