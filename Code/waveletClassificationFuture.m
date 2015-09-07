@@ -3,6 +3,7 @@ RELOAD = true;
 
 %% INITIALIZE
 addpath('C:\Users\j_ast_000\Documents\MATLAB\pmtk3-master');
+initPmtk3
 cd 'C:\cygwin\home\j_ast_000\Thesis\Code'
 
 %% LOAD DATA and select features
@@ -117,8 +118,9 @@ waveletPctCorrect = weightedPctCorrect / rowCount; % GNP ONLY
 %selections = 1:19;
 %selections = [2,7,18,19];  % NASDAQ
 %selections = [2,7,18,20];   % DJIA
-selections = [5,17,18,20]; % KEEP
+%selections = [5,17,18,20]; % KEEP
 %selections = [5,18,20];  
+selections = [5,18];
 
 selectedNames = featureNames(selections);
 data = [];
@@ -147,8 +149,9 @@ validLabels(validLabels==1) = 0;
 validLabels(validLabels==2) = 1;
 rowCount = size(validData,1);
 
-iterations = 1:13;
+iterations = 1:10;
 pcts = zeros(1, size(iterations,2));
+hmmPcts = pcts;
 for ii = iterations
     labels = validLabels(ii:rowCount);
     data = waveletData(1:rowCount-(ii-1), :);
@@ -188,6 +191,29 @@ for ii = iterations
     end
     pctCorrect = weightedPctCorrect / rows;
     pcts(ii) = pctCorrect;
+    
+    
+    %% PMTK HMMs - can use multivariate Gaussians
+    d = size(data, 2);
+    nstates = 2;
+    
+    % now, without incest!
+    targetIndex = 5 * round(size(validLabels, 1) / 8);
+    while labels(targetIndex) ~= labels(1)
+        targetIndex = targetIndex + 1;
+    end
+    split = targetIndex;
+    
+    Z = {labels(1:targetIndex)' + 1};
+    Y = {data(1:targetIndex,:)'};
+    X = data(targetIndex+1:end,:)';
+    model3 = hmmFitFullyObs(Z, Y, 'gauss');
+    
+    % use Viterbi to predict state sequence
+    path = hmmMap(model3, X) - 1;
+    pctError_MVN_HMM = sum(path ~= labels(split+1:end)') / ...
+        size(X,2);
+    hmmPcts(ii) = 1 - pctError_MVN_HMM;
 end
 
 %% Plot results
@@ -198,3 +224,7 @@ plot(years, pcts, 'bx-')
 title('Classification of future cycle phases')
 ylabel('Binary phase classification accuracy')
 xlabel('Prediction lookahead (years)')
+hold on 
+plot(years, hmmPcts, 'ro-');
+hold off
+legend('LDA','HMM')
